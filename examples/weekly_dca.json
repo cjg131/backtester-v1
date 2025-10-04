@@ -1,0 +1,74 @@
+{
+  "meta": {
+    "name": "Weekly Dollar-Cost Averaging",
+    "notes": "SPY with $100 weekly deposits every Monday. Great for simulating regular paycheck investing."
+  },
+  "universe": {
+    "type": "CUSTOM",
+    "symbols": ["SPY"]
+  },
+  "period": {
+    "start": "2020-01-01",
+    "end": "2024-12-31",
+    "calendar": "NYSE"
+  },
+  "initial_cash": 1000,
+  "account": {
+    "type": "Roth IRA",
+    "tax": {
+      "federal_ordinary": 0.32,
+      "federal_ltcg": 0.15,
+      "state": 0.06,
+      "qualified_dividend_pct": 0.8,
+      "apply_wash_sale": false,
+      "pay_taxes_from_external": false,
+      "withdrawal_tax_rate_for_ira": 0.0
+    },
+    "contribution_caps": {
+      "enforce": true,
+      "ira": 7000,
+      "ira_catch_up": 1000,
+      "roth": 7000,
+      "roth_catch_up": 1000
+    }
+  },
+  "deposits": {
+    "cadence": "weekly",
+    "amount": 100,
+    "day_rule": "FIRST_BUSINESS_DAY",
+    "market_day_everyday": false
+  },
+  "dividends": {
+    "mode": "DRIP",
+    "reinvest_threshold_pct": 0.0
+  },
+  "rebalancing": {
+    "type": "cashflow_only"
+  },
+  "orders": {
+    "timing": "MOO"
+  },
+  "lots": {
+    "method": "FIFO"
+  },
+  "frictions": {
+    "commission_per_trade": 0.0,
+    "slippage_bps": 5.0,
+    "use_actual_etf_er": true,
+    "equity_borrow_bps": 0.0
+  },
+  "signals": [],
+  "rules": {
+    "entry": [],
+    "exit": []
+  },
+  "position_sizing": {
+    "method": "EQUAL_WEIGHT"
+  },
+  "benchmark": ["SPY"],
+  "exports": {
+    "csv": true,
+    "json": true,
+    "pdf": false
+  }
+}
