@@ -16,7 +16,7 @@ interface StrategyStore {
   isRunning: boolean;
   
   // UI state
-  theme: 'light' | 'dark';
+  theme: 'light' | 'dark' | 'system';
   
   // Actions
   saveStrategy: (config: StrategyConfig) => void;
@@ -28,7 +28,7 @@ interface StrategyStore {
   runBacktest: (config: StrategyConfig) => Promise<void>;
   setResult: (result: BacktestResult | null) => void;
   
-  toggleTheme: () => void;
+  setTheme: (theme: 'light' | 'dark' | 'system') => void;
   clearAll: () => void;
 }
 
@@ -91,8 +91,10 @@ export const useStrategyStore = create<StrategyStore>()(
       // Run backtest
       runBacktest: async (config) => {
         set({ isRunning: true, currentResult: null });
+        console.log('Store: Starting backtest API call');
         
         try {
+          console.log('Store: Fetching /api/backtest/run');
           const response = await fetch('/api/backtest/run', {
             method: 'POST',
             headers: {
@@ -101,11 +103,16 @@ export const useStrategyStore = create<StrategyStore>()(
             body: JSON.stringify(config),
           });
           
+          console.log('Store: Response status:', response.status, response.statusText);
+          
           if (!response.ok) {
-            throw new Error(`Backtest failed: ${response.statusText}`);
+            const errorText = await response.text();
+            console.error('Store: API error response:', errorText);
+            throw new Error(`Backtest failed: ${response.status} ${response.statusText} - ${errorText}`);
           }
           
           const result: BacktestResult = await response.json();
+          console.log('Store: Backtest result received:', result);
           
           set({ currentResult: result, isRunning: false });
           
@@ -135,11 +142,9 @@ export const useStrategyStore = create<StrategyStore>()(
         set({ currentResult: result });
       },
       
-      // Toggle theme
-      toggleTheme: () => {
-        set((state) => ({
-          theme: state.theme === 'light' ? 'dark' : 'light',
-        }));
+      // Set theme
+      setTheme: (theme) => {
+        set({ theme });
       },
       
       // Clear all data

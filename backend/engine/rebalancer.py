@@ -186,6 +186,38 @@ class Rebalancer:
         
         return False
     
+    def generate_deposit_trades(
+        self,
+        target_weights: Dict[str, float],
+        deposit_amount: float,
+        current_prices: Dict[str, float]
+    ) -> List[Tuple[str, str, float]]:
+        """
+        Generate trades to invest a deposit according to target weights.
+        This ONLY buys with the deposit amount, doesn't rebalance existing positions.
+        
+        Args:
+            target_weights: Target weights (symbol -> weight)
+            deposit_amount: Amount of cash deposited
+            current_prices: Current prices
+            
+        Returns:
+            List of (symbol, action, quantity) tuples
+        """
+        trades = []
+        
+        if deposit_amount <= 0:
+            return trades
+        
+        # Split deposit by target weights
+        for symbol, weight in target_weights.items():
+            if weight > 0:
+                allocation = deposit_amount * weight
+                qty = allocation / current_prices[symbol]
+                trades.append((symbol, "BUY", qty))
+        
+        return trades
+    
     def generate_rebalance_trades(
         self,
         portfolio: Portfolio,

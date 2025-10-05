@@ -125,6 +125,8 @@ class StrategyRunner:
             )
             
             # Process deposits after dividends
+            deposit_made = False
+            deposit_amount = 0
             if config.deposits and is_deposit_day:
                 if config.deposits.amount > 0:
                     deposit_amount = config.deposits.amount
@@ -137,6 +139,7 @@ class StrategyRunner:
                         deposit_amount
                     ):
                         portfolio.add_deposit(deposit_amount, current_date)
+                        deposit_made = True
                     else:
                         self.warnings.append(
                             f"Contribution cap reached on {current_date}, skipping deposit"
@@ -149,26 +152,14 @@ class StrategyRunner:
                 current_date
             )
             
-            # Check for rebalancing
-            current_weights = self._calculate_current_weights(
-                portfolio,
-                current_prices
-            )
-            
-            should_rebalance, reason = rebalancer.should_rebalance(
-                current_date,
-                current_weights,
-                target_weights,
-                is_deposit_day
-            )
-            
-            if should_rebalance or i == 0:  # Always trade on first day
-                # Generate and execute rebalance trades
-                trades = rebalancer.generate_rebalance_trades(
-                    portfolio,
+            # Handle deposits and rebalancing separately
+            if deposit_made:
+                # On deposit days, just invest the deposit according to target weights
+                # Don't rebalance the entire portfolio
+                trades = rebalancer.generate_deposit_trades(
                     target_weights,
-                    current_prices,
-                    current_date
+                    deposit_amount,
+                    current_prices
                 )
                 
                 self._execute_trades(
@@ -178,6 +169,36 @@ class StrategyRunner:
                     current_date,
                     config.frictions
                 )
+            else:
+                # Check for rebalancing (not on deposit days)
+                current_weights = self._calculate_current_weights(
+                    portfolio,
+                    current_prices
+                )
+                
+                should_rebalance, reason = rebalancer.should_rebalance(
+                    current_date,
+                    current_weights,
+                    target_weights,
+                    False  # Never trigger deposit-based rebalancing since we handle it above
+                )
+                
+                if should_rebalance or i == 0:  # Always trade on first day
+                    # Generate and execute rebalance trades
+                    trades = rebalancer.generate_rebalance_trades(
+                        portfolio,
+                        target_weights,
+                        current_prices,
+                        current_date
+                    )
+                    
+                    self._execute_trades(
+                        portfolio,
+                        trades,
+                        current_prices,
+                        current_date,
+                        config.frictions
+                    )
             
             # Record daily snapshot
             portfolio_value = portfolio.get_total_value(current_prices)
@@ -216,7 +237,7 @@ class StrategyRunner:
         )
         
         # Calculate benchmark metrics
-        benchmark_metrics = await self._calculate_benchmark_metrics(
+        benchmark_metrics, benchmark_equity = await self._calculate_benchmark_metrics(
             config,
             calendar,
             trading_days
@@ -242,6 +263,7 @@ class StrategyRunner:
             equity_curve=equity_curve,
             metrics=metrics,
             benchmark_metrics=benchmark_metrics,
+            benchmark_equity=benchmark_equity,
             trades=portfolio.trades,
             positions_history=positions_history,
             tax_summaries=tax_summaries,
@@ -328,6 +350,31 @@ class StrategyRunner:
         if position_sizing.method == "EQUAL_WEIGHT":
             weight = 1.0 / len(symbols)
             return {symbol: weight for symbol in symbols}
+        
+        elif position_sizing.method == "CUSTOM_WEIGHTS":
+            if not position_sizing.custom_weights:
+                # Fallback to equal weights if no custom weights provided
+                weight = 1.0 / len(symbols)
+                return {symbol: weight for symbol in symbols}
+            
+            # Use custom weights, normalize to ensure they sum to 1.0
+            weights = {}
+            total_weight = 0.0
+            
+            for symbol in symbols:
+                weight = position_sizing.custom_weights.get(symbol, 0.0)
+                weights[symbol] = weight
+                total_weight += weight
+            
+            # Normalize weights to sum to 1.0
+            if total_weight > 0:
+                weights = {symbol: weight / total_weight for symbol, weight in weights.items()}
+            else:
+                # If no weights specified, fallback to equal weights
+                weight = 1.0 / len(symbols)
+                weights = {symbol: weight for symbol in symbols}
+            
+            return weights
         
         # Add other methods as needed
         return {symbol: 1.0 / len(symbols) for symbol in symbols}
@@ -592,8 +639,22 @@ class StrategyRunner:
         
         equity_series = df['portfolio_value']
         
+        # Build cashflows series from portfolio contributions
+        cashflows_data = []
+        for year, amount in portfolio.annual_contributions.items():
+            # Add contribution at year start (approximate)
+            year_start = pd.Timestamp(f'{year}-01-01')
+            cashflows_data.append({'date': year_start, 'amount': amount})
+        
+        cashflows = None
+        if cashflows_data:
+            cf_df = pd.DataFrame(cashflows_data)
+            cf_df['date'] = pd.to_datetime(cf_df['date'])
+            cf_df.set_index('date', inplace=True)
+            cashflows = cf_df['amount']
+        
         calculator = MetricsCalculator()
-        metrics = calculator.calculate_all_metrics(equity_series)
+        metrics = calculator.calculate_all_metrics(equity_series, cashflows=cashflows)
         
         return metrics
     
@@ -602,9 +663,10 @@ class StrategyRunner:
         config: StrategyConfig,
         calendar: MarketCalendar,
         trading_days: List[date]
-    ) -> Dict[str, PerformanceMetrics]:
-        """Calculate metrics for benchmark(s)"""
+    ) -> Tuple[Dict[str, PerformanceMetrics], Dict[str, List[Dict]]]:
+        """Calculate metrics for benchmark(s) with simulated deposits"""
         benchmark_metrics = {}
+        benchmark_equity = {}
         
         for benchmark_symbol in config.benchmark:
             try:
@@ -617,28 +679,89 @@ class StrategyRunner:
                 if not bars:
                     continue
                 
-                # Build equity curve
-                equity_data = []
+                # Build price series
+                prices = {}
                 for bar in bars:
                     bar_date = datetime.strptime(bar.date, '%Y-%m-%d').date()
+                    prices[bar_date] = bar.adj_close
+                
+                # Simulate portfolio with deposits (buy-and-hold with regular deposits)
+                shares = 0.0
+                cash = config.initial_cash
+                equity_data = []
+                total_deposits = 0.0
+                
+                for i, current_date in enumerate(trading_days):
+                    if current_date not in prices:
+                        continue
+                    
+                    current_price = prices[current_date]
+                    
+                    # Check for deposit
+                    is_deposit_day = False
+                    if config.deposits:
+                        is_deposit_day = self._is_deposit_day(
+                            current_date,
+                            config.deposits,
+                            calendar
+                        )
+                    
+                    # Add deposit if applicable
+                    if is_deposit_day and config.deposits:
+                        cash += config.deposits.amount
+                        total_deposits += config.deposits.amount
+                    
+                    # Buy shares with all available cash (buy-and-hold strategy)
+                    if cash > 0 and current_price > 0:
+                        shares_to_buy = cash / current_price
+                        shares += shares_to_buy
+                        cash = 0
+                    
+                    # Calculate portfolio value
+                    portfolio_value = shares * current_price + cash
+                    
                     equity_data.append({
-                        'date': bar_date,
-                        'value': bar.adj_close
+                        'date': current_date,
+                        'value': portfolio_value
                     })
                 
+                # Convert to DataFrame for metrics calculation
                 df = pd.DataFrame(equity_data)
                 df['date'] = pd.to_datetime(df['date'])
                 df.set_index('date', inplace=True)
                 
-                # Normalize to initial investment
-                df['value'] = df['value'] / df['value'].iloc[0] * config.initial_cash
+                # Build cashflows for metrics
+                cashflows_data = []
+                if config.deposits and total_deposits > 0:
+                    # Approximate: aggregate deposits by year
+                    year_deposits = defaultdict(float)
+                    for current_date in trading_days:
+                        if config.deposits and self._is_deposit_day(current_date, config.deposits, calendar):
+                            year_deposits[current_date.year] += config.deposits.amount
+                    
+                    for year, amount in year_deposits.items():
+                        year_start = pd.Timestamp(f'{year}-01-01')
+                        cashflows_data.append({'date': year_start, 'amount': amount})
+                
+                cashflows = None
+                if cashflows_data:
+                    cf_df = pd.DataFrame(cashflows_data)
+                    cf_df['date'] = pd.to_datetime(cf_df['date'])
+                    cf_df.set_index('date', inplace=True)
+                    cashflows = cf_df['amount']
                 
                 calculator = MetricsCalculator()
-                metrics = calculator.calculate_all_metrics(df['value'])
+                metrics = calculator.calculate_all_metrics(df['value'], cashflows=cashflows)
                 
                 benchmark_metrics[benchmark_symbol] = metrics
+                
+                # Store equity curve for charting
+                benchmark_equity[benchmark_symbol] = [
+                    {'date': d.strftime('%Y-%m-%d'), 'value': v}
+                    for d, v in zip(df.index, df['value'])
+                ]
             
             except Exception as e:
                 self.warnings.append(f"Error calculating benchmark {benchmark_symbol}: {e}")
         
-        return benchmark_metrics
+        return benchmark_metrics, benchmark_equity

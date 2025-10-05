@@ -97,6 +97,7 @@ class AccountConfig(BaseModel):
     type: AccountType
     tax: TaxConfig = Field(default_factory=TaxConfig)
     contribution_caps: ContributionCaps = Field(default_factory=ContributionCaps)
+    state: Optional[str] = None  # State code for 529 plan tax benefits (e.g., 'CA', 'NY')
 
 
 class UniverseConfig(BaseModel):
@@ -183,8 +184,9 @@ class RulesConfig(BaseModel):
 
 class PositionSizingConfig(BaseModel):
     """Position sizing method"""
-    method: str = "EQUAL_WEIGHT"
+    method: str = "EQUAL_WEIGHT"  # EQUAL_WEIGHT, CUSTOM_WEIGHTS
     top_n: Optional[int] = None
+    custom_weights: Optional[Dict[str, float]] = None  # Symbol -> weight (0.0-1.0)
     vol_target: Optional[float] = None
 
 
@@ -255,6 +257,7 @@ class BacktestResult(BaseModel):
     equity_curve: List[Dict[str, Any]]  # date, portfolio_value, cash, positions_value
     metrics: PerformanceMetrics
     benchmark_metrics: Dict[str, PerformanceMetrics]
+    benchmark_equity: Dict[str, List[Dict[str, Any]]] = {}  # symbol -> list of {date, value}
     trades: List[Trade]
     positions_history: List[Dict[str, Any]]
     tax_summaries: List[TaxSummary]

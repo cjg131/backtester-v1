@@ -32,9 +32,10 @@ export interface StrategyConfig {
 }
 
 export interface AccountConfig {
-  type: 'Taxable' | 'Traditional IRA' | 'Roth IRA';
+  type: 'Taxable' | 'Traditional IRA' | 'Roth IRA' | '529 Plan';
   tax: TaxConfig;
   contribution_caps: ContributionCaps;
+  state?: string;  // State code for 529 plan benefits
 }
 
 export interface TaxConfig {
@@ -113,6 +114,7 @@ export interface PositionSizingConfig {
   method: string;
   top_n?: number;
   vol_target?: number;
+  custom_weights?: { [symbol: string]: number };
 }
 
 export interface ExportsConfig {
@@ -126,6 +128,7 @@ export interface BacktestResult {
   equity_curve: EquityPoint[];
   metrics: PerformanceMetrics;
   benchmark_metrics: Record<string, PerformanceMetrics>;
+  benchmark_equity: Record<string, Array<{date: string; value: number}>>;
   trades: Trade[];
   positions_history: any[];
   tax_summaries: TaxSummary[];

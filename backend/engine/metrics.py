@@ -17,12 +17,14 @@ class MetricsCalculator:
     def __init__(self, risk_free_rate: float = 0.02):
         self.risk_free_rate = risk_free_rate
     
-    def calculate_twr(self, equity_curve: pd.Series) -> float:
+    def calculate_twr(self, equity_curve: pd.Series, cashflows: Optional[pd.Series] = None) -> float:
         """
         Calculate Time-Weighted Return.
+        If cashflows are provided, segments the return calculation around each cashflow.
         
         Args:
             equity_curve: Series of portfolio values indexed by date
+            cashflows: Optional series of cashflows (deposits are positive)
             
         Returns:
             Total time-weighted return
@@ -30,7 +32,26 @@ class MetricsCalculator:
         if len(equity_curve) < 2:
             return 0.0
         
-        return (equity_curve.iloc[-1] / equity_curve.iloc[0]) - 1.0
+        # If no cashflows, use simple calculation
+        if cashflows is None or len(cashflows) == 0:
+            return (equity_curve.iloc[-1] / equity_curve.iloc[0]) - 1.0
+        
+        # With cashflows, we need to segment the returns
+        # This is a simplified TWR that subtracts deposits from final value
+        total_deposits = cashflows.sum() if cashflows is not None else 0.0
+        initial_value = equity_curve.iloc[0]
+        final_value = equity_curve.iloc[-1]
+        
+        # Calculate gain: final_value - initial_value - total_deposits
+        total_gain = final_value - initial_value - total_deposits
+        
+        # Return as percentage of total invested (initial + deposits)
+        total_invested = initial_value + total_deposits
+        
+        if total_invested <= 0:
+            return 0.0
+            
+        return total_gain / total_invested
     
     def calculate_irr(
         self,
@@ -85,14 +106,17 @@ class MetricsCalculator:
     def calculate_cagr(
         self,
         equity_curve: pd.Series,
-        years: Optional[float] = None
+        years: Optional[float] = None,
+        cashflows: Optional[pd.Series] = None
     ) -> float:
         """
         Calculate Compound Annual Growth Rate.
+        Accounts for cashflows (deposits) if provided.
         
         Args:
             equity_curve: Series of portfolio values
             years: Number of years (calculated if not provided)
+            cashflows: Optional series of cashflows (deposits are positive)
             
         Returns:
             Annualized CAGR
@@ -107,8 +131,26 @@ class MetricsCalculator:
         if years <= 0:
             return 0.0
         
-        total_return = equity_curve.iloc[-1] / equity_curve.iloc[0]
-        cagr = (total_return ** (1 / years)) - 1.0
+        # If cashflows provided, calculate CAGR on actual gains
+        if cashflows is not None and len(cashflows) > 0:
+            total_deposits = cashflows.sum()
+            initial_value = equity_curve.iloc[0]
+            final_value = equity_curve.iloc[-1]
+            
+            # Calculate total gain
+            total_gain = final_value - initial_value - total_deposits
+            total_invested = initial_value + total_deposits
+            
+            if total_invested <= 0:
+                return 0.0
+            
+            # CAGR based on gain ratio
+            gain_ratio = (total_invested + total_gain) / total_invested
+            cagr = (gain_ratio ** (1 / years)) - 1.0
+        else:
+            # No cashflows, use simple calculation
+            total_return = equity_curve.iloc[-1] / equity_curve.iloc[0]
+            cagr = (total_return ** (1 / years)) - 1.0
         
         return cagr
     
@@ -439,15 +481,15 @@ class MetricsCalculator:
         days = (equity_curve.index[-1] - equity_curve.index[0]).days
         years = days / 365.25
         
-        # Basic metrics
-        twr = self.calculate_twr(equity_curve)
+        # Basic metrics - pass cashflows to TWR for proper calculation
+        twr = self.calculate_twr(equity_curve, cashflows)
         
         if cashflows is not None:
             irr = self.calculate_irr(equity_curve, cashflows)
         else:
             irr = twr
         
-        cagr = self.calculate_cagr(equity_curve, years)
+        cagr = self.calculate_cagr(equity_curve, years, cashflows)
         annual_vol = self.calculate_volatility(returns)
         sharpe = self.calculate_sharpe(returns)
         sortino = self.calculate_sortino(returns)
