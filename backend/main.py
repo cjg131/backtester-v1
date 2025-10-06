@@ -16,11 +16,13 @@ from dotenv import load_dotenv
 
 from engine.models import StrategyConfig, BacktestResult
 from engine.runner import StrategyRunner
-from providers.csv_provider import CSVProvider
-from providers.yfinance_provider import YFinanceProvider
+from providers.polygon_provider import PolygonProvider
 
 # Load environment variables
 load_dotenv()
+
+# Get Polygon API key from environment
+POLYGON_API_KEY = os.getenv('POLYGON_API_KEY', '')
 
 app = FastAPI(
     title="Backtester v1 API",
@@ -37,11 +39,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Initialize data providers
-yfinance_provider = YFinanceProvider()
+# Initialize data provider
+if not POLYGON_API_KEY:
+    raise ValueError("POLYGON_API_KEY environment variable is required")
 
-# Use yfinance for all symbols (downloads data on-demand from Yahoo Finance)
-current_provider = yfinance_provider
+polygon_provider = PolygonProvider(api_key=POLYGON_API_KEY)
+current_provider = polygon_provider
 
 
 def clean_json_data(obj):
@@ -87,8 +90,7 @@ async def health():
     return {
         "status": "healthy",
         "providers": {
-            "csv": "available",
-            "yfinance": "available"
+            "polygon": "available" if POLYGON_API_KEY else "missing_api_key"
         }
     }
 
@@ -98,8 +100,8 @@ async def health():
 async def run_backtest(config: StrategyConfig):
     """Run a backtest with the given configuration"""
     try:
-        # Use yfinance provider to download data on-demand
-        runner = StrategyRunner(yfinance_provider)
+        # Use Polygon provider to download data on-demand
+        runner = StrategyRunner(polygon_provider)
         result = await runner.run(config)
         
         # Convert result to dict and handle NaN/inf values
