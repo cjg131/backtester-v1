@@ -38,18 +38,10 @@ app.add_middleware(
 )
 
 # Initialize data providers
-csv_provider = CSVProvider(data_dir="/Users/cj/CascadeProjects/backtester-v1/backend/data")
 yfinance_provider = YFinanceProvider()
 
-# Use both providers - CSV for available symbols, yfinance for others
-def get_provider_for_symbol(symbol: str):
-    csv_symbols = ['SPY', 'QQQ', 'VTI', 'AGG', 'TLT', 'BND']
-    if symbol in csv_symbols:
-        return csv_provider
-    else:
-        return yfinance_provider
-
-current_provider = csv_provider  # Default, but will be overridden per symbol
+# Use yfinance for all symbols (downloads data on-demand from Yahoo Finance)
+current_provider = yfinance_provider
 
 
 def clean_json_data(obj):
@@ -106,18 +98,8 @@ async def health():
 async def run_backtest(config: StrategyConfig):
     """Run a backtest with the given configuration"""
     try:
-        # Use hybrid provider approach - check if all symbols are in CSV
-        symbols = config.universe.symbols
-        csv_symbols = ['SPY', 'QQQ', 'VTI', 'AGG', 'TLT', 'BND']
-        
-        # If all symbols are in CSV, use CSV provider for speed
-        if all(symbol in csv_symbols for symbol in symbols):
-            provider = csv_provider
-        else:
-            # Otherwise use yfinance for broader coverage
-            provider = yfinance_provider
-            
-        runner = StrategyRunner(provider)
+        # Use yfinance provider to download data on-demand
+        runner = StrategyRunner(yfinance_provider)
         result = await runner.run(config)
         
         # Convert result to dict and handle NaN/inf values
