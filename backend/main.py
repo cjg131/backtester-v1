@@ -16,13 +16,10 @@ from dotenv import load_dotenv
 
 from engine.models import StrategyConfig, BacktestResult
 from engine.runner import StrategyRunner
-from providers.polygon_provider import PolygonProvider
+from providers.yfinance_provider import YFinanceProvider
 
 # Load environment variables
 load_dotenv()
-
-# Get Polygon API key from environment
-POLYGON_API_KEY = os.getenv('POLYGON_API_KEY', '')
 
 app = FastAPI(
     title="Backtester v1 API",
@@ -39,12 +36,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Initialize data provider
-if not POLYGON_API_KEY:
-    raise ValueError("POLYGON_API_KEY environment variable is required")
-
-polygon_provider = PolygonProvider(api_key=POLYGON_API_KEY)
-current_provider = polygon_provider
+# Initialize data provider with enhanced yfinance
+yfinance_provider = YFinanceProvider()
+current_provider = yfinance_provider
 
 
 def clean_json_data(obj):
@@ -90,7 +84,7 @@ async def health():
     return {
         "status": "healthy",
         "providers": {
-            "polygon": "available" if POLYGON_API_KEY else "missing_api_key"
+            "yfinance": "available"
         }
     }
 
@@ -100,8 +94,8 @@ async def health():
 async def run_backtest(config: StrategyConfig):
     """Run a backtest with the given configuration"""
     try:
-        # Use Polygon provider to download data on-demand
-        runner = StrategyRunner(polygon_provider)
+        # Use yfinance provider to download data on-demand
+        runner = StrategyRunner(yfinance_provider)
         result = await runner.run(config)
         
         # Convert result to dict and handle NaN/inf values

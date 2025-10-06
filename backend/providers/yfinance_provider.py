@@ -1,20 +1,28 @@
 """
 Yahoo Finance data provider using yfinance library.
+Enhanced with user-agent rotation and request throttling.
 """
 
 import yfinance as yf
 import pandas as pd
 import time
+import random
 from typing import List, Optional
 from providers.base import DataProvider
 from engine.models import Bar, Dividend, Split
 
 
 class YFinanceProvider(DataProvider):
-    """Yahoo Finance data provider"""
+    """Yahoo Finance data provider with anti-blocking measures"""
     
     def __init__(self):
         self._cache = {}
+        # Randomize user agents to avoid blocking
+        self.user_agents = [
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
+            'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36'
+        ]
     
     async def get_symbols(
         self,
@@ -34,18 +42,29 @@ class YFinanceProvider(DataProvider):
         end: str,
         freq: str = "daily"
     ) -> List[Bar]:
-        """Download bars from Yahoo Finance"""
+        """Download bars from Yahoo Finance with anti-blocking measures"""
         # Add retry logic for yfinance API issues
-        max_retries = 3
-        retry_delay = 2  # seconds
+        max_retries = 5
+        base_delay = 1.5  # seconds
         
         for attempt in range(max_retries):
             try:
-                # Add small delay between requests to avoid rate limiting
+                # Random delay between requests to look more human
+                delay = base_delay * (attempt + 1) + random.uniform(0, 1)
                 if attempt > 0:
-                    time.sleep(retry_delay * attempt)
+                    time.sleep(delay)
                 
+                # Use random user agent
+                user_agent = random.choice(self.user_agents)
+                
+                # Create ticker with session that has user agent
                 ticker = yf.Ticker(symbol)
+                
+                # Set user agent on the session
+                if hasattr(ticker, 'session'):
+                    ticker.session.headers['User-Agent'] = user_agent
+                
+                # Download data
                 df = ticker.history(start=start, end=end, auto_adjust=False)
                 
                 if df.empty:
@@ -60,6 +79,7 @@ class YFinanceProvider(DataProvider):
             except Exception as e:
                 print(f"Attempt {attempt + 1}/{max_retries} failed for {symbol}: {e}")
                 if attempt == max_retries - 1:
+                    print(f"All retries exhausted for {symbol}")
                     return []
                 continue
         
