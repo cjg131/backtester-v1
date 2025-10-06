@@ -86,6 +86,15 @@ async def root():
     }
 
 
+@app.get("/health")
+async def health_check():
+    """Simple health check"""
+    return {
+        "status": "healthy",
+        "service": "Backtester v1"
+    }
+
+
 @app.get("/api/health")
 async def health():
     """Detailed health check"""
@@ -98,6 +107,7 @@ async def health():
     }
 
 
+@app.post("/backtest/run")
 @app.post("/api/backtest/run")
 async def run_backtest(config: StrategyConfig):
     """Run a backtest with the given configuration"""
