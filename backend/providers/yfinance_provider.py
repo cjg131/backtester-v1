@@ -87,7 +87,12 @@ class YFinanceProvider(DataProvider):
             ticker = yf.Ticker(symbol)
             divs = ticker.dividends
             
-            if divs.empty:
+            # Handle different return types from yfinance
+            if divs is None or (hasattr(divs, 'empty') and divs.empty) or (isinstance(divs, list) and len(divs) == 0):
+                return []
+            
+            # Ensure it's a pandas Series before filtering
+            if not hasattr(divs, 'index'):
                 return []
             
             # Filter by date range
@@ -119,7 +124,12 @@ class YFinanceProvider(DataProvider):
             ticker = yf.Ticker(symbol)
             splits = ticker.splits
             
-            if splits.empty:
+            # Handle different return types from yfinance
+            if splits is None or (hasattr(splits, 'empty') and splits.empty) or (isinstance(splits, list) and len(splits) == 0):
+                return []
+            
+            # Ensure it's a pandas Series before filtering
+            if not hasattr(splits, 'index'):
                 return []
             
             # Filter by date range
