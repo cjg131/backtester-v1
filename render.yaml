@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: strategylab-backend
+    env: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    plan: free
+    healthCheckPath: /
+    envVars:
+      - key: PORT
+        value: 8000
