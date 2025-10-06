@@ -54,17 +54,9 @@ class YFinanceProvider(DataProvider):
                 if attempt > 0:
                     time.sleep(delay)
                 
-                # Use random user agent
-                user_agent = random.choice(self.user_agents)
-                
-                # Create ticker with session that has user agent
+                # Create ticker and download data
+                # yfinance handles user agents internally now
                 ticker = yf.Ticker(symbol)
-                
-                # Set user agent on the session
-                if hasattr(ticker, 'session'):
-                    ticker.session.headers['User-Agent'] = user_agent
-                
-                # Download data
                 df = ticker.history(start=start, end=end, auto_adjust=False)
                 
                 if df.empty:
