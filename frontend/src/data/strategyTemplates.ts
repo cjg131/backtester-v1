@@ -37,7 +37,7 @@ export const STRATEGY_TEMPLATES: StrategyTemplate[] = [
     config: {
       universe: {
         type: 'CUSTOM',
-        symbols: ['VTI', 'VTIAX', 'BND']
+        symbols: ['VTI', 'VXUS', 'BND']
       },
       period: {
         start: '2020-01-01',
@@ -92,7 +92,7 @@ export const STRATEGY_TEMPLATES: StrategyTemplate[] = [
         method: 'CUSTOM_WEIGHTS',
         custom_weights: {
           'VTI': 0.36,    // 36% US Total Market
-          'VTIAX': 0.24,  // 24% International
+          'VXUS': 0.24,   // 24% International
           'BND': 0.40     // 40% Bonds
         }
       },
@@ -101,19 +101,16 @@ export const STRATEGY_TEMPLATES: StrategyTemplate[] = [
     },
     fundAlternatives: {
       'VTI': [
-        { symbol: 'SWTSX', name: 'Schwab Total Stock Market Index', reason: 'Lower expense ratio (0.03%)', expenseRatio: 0.03, provider: 'Schwab' },
-        { symbol: 'FZROX', name: 'Fidelity ZERO Total Market Index', reason: 'Zero expense ratio', expenseRatio: 0.0, provider: 'Fidelity' },
-        { symbol: 'ITOT', name: 'iShares Core S&P Total US Stock Market', reason: 'Alternative provider, similar exposure', expenseRatio: 0.03, provider: 'iShares' }
+        { symbol: 'ITOT', name: 'iShares Core S&P Total US Stock Market ETF', reason: 'Alternative provider, similar exposure', expenseRatio: 0.03, provider: 'iShares' },
+        { symbol: 'SCHB', name: 'Schwab US Broad Market ETF', reason: 'Ultra-low cost alternative', expenseRatio: 0.03, provider: 'Schwab' }
       ],
-      'VTIAX': [
-        { symbol: 'FTIHX', name: 'Fidelity Total International Index', reason: 'Lower expense ratio (0.06%)', expenseRatio: 0.06, provider: 'Fidelity' },
-        { symbol: 'SWISX', name: 'Schwab International Index', reason: 'Schwab alternative with low fees', expenseRatio: 0.06, provider: 'Schwab' },
-        { symbol: 'IXUS', name: 'iShares Core MSCI Total International Stock', reason: 'iShares alternative', expenseRatio: 0.09, provider: 'iShares' }
+      'VXUS': [
+        { symbol: 'IXUS', name: 'iShares Core MSCI Total International Stock', reason: 'iShares alternative', expenseRatio: 0.09, provider: 'iShares' },
+        { symbol: 'VXUS', name: 'Vanguard Total International Stock ETF', reason: 'Comprehensive international exposure', expenseRatio: 0.08, provider: 'Vanguard' }
       ],
       'BND': [
-        { symbol: 'FXNAX', name: 'Fidelity US Bond Index', reason: 'Lower expense ratio (0.025%)', expenseRatio: 0.025, provider: 'Fidelity' },
-        { symbol: 'SWAGX', name: 'Schwab US Aggregate Bond Index', reason: 'Schwab alternative', expenseRatio: 0.04, provider: 'Schwab' },
-        { symbol: 'AGG', name: 'iShares Core US Aggregate Bond', reason: 'Most liquid bond ETF', expenseRatio: 0.03, provider: 'iShares' }
+        { symbol: 'AGG', name: 'iShares Core US Aggregate Bond ETF', reason: 'Most liquid bond ETF', expenseRatio: 0.03, provider: 'iShares' },
+        { symbol: 'SCHZ', name: 'Schwab US Aggregate Bond ETF', reason: 'Low-cost Schwab alternative', expenseRatio: 0.04, provider: 'Schwab' }
       ]
     },
     tags: ['Bogleheads', 'Diversified', 'Low-cost', 'Stable'],
@@ -140,7 +137,7 @@ export const STRATEGY_TEMPLATES: StrategyTemplate[] = [
     config: {
       universe: {
         type: 'CUSTOM',
-        symbols: ['VTI', 'VTIAX', 'BND']
+        symbols: ['VTI', 'VXUS', 'BND']
       },
       period: {
         start: '2020-01-01',
@@ -195,7 +192,7 @@ export const STRATEGY_TEMPLATES: StrategyTemplate[] = [
         method: 'CUSTOM_WEIGHTS',
         custom_weights: {
           'VTI': 0.54,    // 54% US Total Market
-          'VTIAX': 0.36,  // 36% International
+          'VXUS': 0.36,   // 36% International
           'BND': 0.10     // 10% Bonds
         }
       },
@@ -204,19 +201,16 @@ export const STRATEGY_TEMPLATES: StrategyTemplate[] = [
     },
     fundAlternatives: {
       'VTI': [
-        { symbol: 'SWTSX', name: 'Schwab Total Stock Market Index', reason: 'Lower expense ratio (0.03%)', expenseRatio: 0.03, provider: 'Schwab' },
-        { symbol: 'FZROX', name: 'Fidelity ZERO Total Market Index', reason: 'Zero expense ratio', expenseRatio: 0.0, provider: 'Fidelity' },
-        { symbol: 'ITOT', name: 'iShares Core S&P Total US Stock Market', reason: 'Alternative provider', expenseRatio: 0.03, provider: 'iShares' }
+        { symbol: 'ITOT', name: 'iShares Core S&P Total US Stock Market ETF', reason: 'Alternative provider, similar exposure', expenseRatio: 0.03, provider: 'iShares' },
+        { symbol: 'SCHB', name: 'Schwab US Broad Market ETF', reason: 'Ultra-low cost alternative', expenseRatio: 0.03, provider: 'Schwab' }
       ],
-      'VTIAX': [
-        { symbol: 'FTIHX', name: 'Fidelity Total International Index', reason: 'Lower expense ratio (0.06%)', expenseRatio: 0.06, provider: 'Fidelity' },
-        { symbol: 'SWISX', name: 'Schwab International Index', reason: 'Schwab alternative', expenseRatio: 0.06, provider: 'Schwab' },
-        { symbol: 'IXUS', name: 'iShares Core MSCI Total International Stock', reason: 'iShares alternative', expenseRatio: 0.09, provider: 'iShares' }
+      'VXUS': [
+        { symbol: 'IXUS', name: 'iShares Core MSCI Total International Stock ETF', reason: 'iShares alternative', expenseRatio: 0.09, provider: 'iShares' },
+        { symbol: 'VXUS', name: 'Vanguard Total International Stock ETF', reason: 'Comprehensive international exposure', expenseRatio: 0.08, provider: 'Vanguard' }
       ],
       'BND': [
-        { symbol: 'FXNAX', name: 'Fidelity US Bond Index', reason: 'Lower expense ratio (0.025%)', expenseRatio: 0.025, provider: 'Fidelity' },
-        { symbol: 'SWAGX', name: 'Schwab US Aggregate Bond Index', reason: 'Schwab alternative', expenseRatio: 0.04, provider: 'Schwab' },
-        { symbol: 'AGG', name: 'iShares Core US Aggregate Bond', reason: 'Most liquid bond ETF', expenseRatio: 0.03, provider: 'iShares' }
+        { symbol: 'AGG', name: 'iShares Core US Aggregate Bond ETF', reason: 'Most liquid bond ETF', expenseRatio: 0.03, provider: 'iShares' },
+        { symbol: 'SCHZ', name: 'Schwab US Aggregate Bond ETF', reason: 'Low-cost Schwab alternative', expenseRatio: 0.04, provider: 'Schwab' }
       ]
     },
     tags: ['High-growth', 'Long-term', 'Tax-free', 'Aggressive'],
@@ -324,9 +318,8 @@ export const STRATEGY_TEMPLATES: StrategyTemplate[] = [
         { symbol: 'FREL', name: 'Fidelity MSCI Real Estate Index ETF', reason: 'Fidelity alternative', expenseRatio: 0.08, provider: 'Fidelity' }
       ],
       'BND': [
-        { symbol: 'FXNAX', name: 'Fidelity US Bond Index', reason: 'Lower expense ratio (0.025%)', expenseRatio: 0.025, provider: 'Fidelity' },
-        { symbol: 'SWAGX', name: 'Schwab US Aggregate Bond Index', reason: 'Schwab alternative', expenseRatio: 0.04, provider: 'Schwab' },
-        { symbol: 'AGG', name: 'iShares Core US Aggregate Bond', reason: 'Most liquid bond ETF', expenseRatio: 0.03, provider: 'iShares' }
+        { symbol: 'AGG', name: 'iShares Core US Aggregate Bond ETF', reason: 'Most liquid bond ETF', expenseRatio: 0.03, provider: 'iShares' },
+        { symbol: 'SCHZ', name: 'Schwab US Aggregate Bond ETF', reason: 'Low-cost Schwab alternative', expenseRatio: 0.04, provider: 'Schwab' }
       ]
     },
     tags: ['Income', 'Dividends', 'REITs', 'Steady'],
@@ -434,9 +427,8 @@ export const STRATEGY_TEMPLATES: StrategyTemplate[] = [
         { symbol: 'ARKW', name: 'ARK Next Generation Internet ETF', reason: 'Internet innovation focus', expenseRatio: 0.75, provider: 'ARK' }
       ],
       'BND': [
-        { symbol: 'FXNAX', name: 'Fidelity US Bond Index', reason: 'Lower expense ratio (0.025%)', expenseRatio: 0.025, provider: 'Fidelity' },
-        { symbol: 'SWAGX', name: 'Schwab US Aggregate Bond Index', reason: 'Schwab alternative', expenseRatio: 0.04, provider: 'Schwab' },
-        { symbol: 'AGG', name: 'iShares Core US Aggregate Bond', reason: 'Most liquid bond ETF', expenseRatio: 0.03, provider: 'iShares' }
+        { symbol: 'AGG', name: 'iShares Core US Aggregate Bond ETF', reason: 'Most liquid bond ETF', expenseRatio: 0.03, provider: 'iShares' },
+        { symbol: 'SCHZ', name: 'Schwab US Aggregate Bond ETF', reason: 'Low-cost Schwab alternative', expenseRatio: 0.04, provider: 'Schwab' }
       ]
     },
     tags: ['Technology', 'Growth', 'Innovation', 'High-risk'],
@@ -529,14 +521,12 @@ export const STRATEGY_TEMPLATES: StrategyTemplate[] = [
     },
     fundAlternatives: {
       'VTI': [
-        { symbol: 'SWTSX', name: 'Schwab Total Stock Market Index', reason: 'Lower expense ratio (0.03%)', expenseRatio: 0.03, provider: 'Schwab' },
-        { symbol: 'FZROX', name: 'Fidelity ZERO Total Market Index', reason: 'Zero expense ratio', expenseRatio: 0.0, provider: 'Fidelity' },
-        { symbol: 'ITOT', name: 'iShares Core S&P Total US Stock Market', reason: 'Alternative provider', expenseRatio: 0.03, provider: 'iShares' }
+        { symbol: 'ITOT', name: 'iShares Core S&P Total US Stock Market ETF', reason: 'Alternative provider, similar exposure', expenseRatio: 0.03, provider: 'iShares' },
+        { symbol: 'SCHB', name: 'Schwab US Broad Market ETF', reason: 'Ultra-low cost alternative', expenseRatio: 0.03, provider: 'Schwab' }
       ],
       'BND': [
-        { symbol: 'FXNAX', name: 'Fidelity US Bond Index', reason: 'Lower expense ratio (0.025%)', expenseRatio: 0.025, provider: 'Fidelity' },
-        { symbol: 'SWAGX', name: 'Schwab US Aggregate Bond Index', reason: 'Schwab alternative', expenseRatio: 0.04, provider: 'Schwab' },
-        { symbol: 'AGG', name: 'iShares Core US Aggregate Bond', reason: 'Most liquid bond ETF', expenseRatio: 0.03, provider: 'iShares' }
+        { symbol: 'AGG', name: 'iShares Core US Aggregate Bond ETF', reason: 'Most liquid bond ETF', expenseRatio: 0.03, provider: 'iShares' },
+        { symbol: 'SCHZ', name: 'Schwab US Aggregate Bond ETF', reason: 'Low-cost Schwab alternative', expenseRatio: 0.04, provider: 'Schwab' }
       ],
       'VTEB': [
         { symbol: 'MUB', name: 'iShares National Muni Bond ETF', reason: 'iShares municipal bond alternative', expenseRatio: 0.05, provider: 'iShares' },

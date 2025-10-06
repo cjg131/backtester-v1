@@ -69,13 +69,13 @@ export const SECURITY_INFO: Record<string, SecurityInfo> = {
     website: 'https://investor.vanguard.com/etf/profile/VTI'
   },
 
-  'VTIAX': {
-    symbol: 'VTIAX',
-    name: 'Vanguard Total International Stock Index Fund',
+  'VXUS': {
+    symbol: 'VXUS',
+    name: 'Vanguard Total International Stock ETF',
     type: 'ETF',
     category: 'International Developed + Emerging',
     description: 'Provides broad exposure to international developed and emerging markets, excluding the US.',
-    expenseRatio: 0.11,
+    expenseRatio: 0.08,
     dividendYield: 2.8,
     inception: '2010',
     aum: '$50B+',
@@ -477,146 +477,6 @@ export const SECURITY_INFO: Record<string, SecurityInfo> = {
     website: 'https://investor.vanguard.com/etf/profile/VTEB'
   },
 
-  // Schwab Alternatives
-  'SWTSX': {
-    symbol: 'SWTSX',
-    name: 'Schwab Total Stock Market Index Fund',
-    type: 'Mutual Fund',
-    category: 'US Total Market',
-    expenseRatio: 0.03,
-    description: 'Tracks the performance of the entire U.S. stock market, including small-, mid-, and large-cap stocks.',
-    pros: [
-      'Ultra-low expense ratio of 0.03%',
-      'Broad diversification across entire U.S. market',
-      'No minimum investment requirement',
-      'Schwab ecosystem benefits'
-    ],
-    cons: [
-      'No international exposure',
-      'Concentrated in U.S. market risk',
-      'May underperform during international outperformance'
-    ],
-    keyFeatures: [
-      'Tracks Dow Jones U.S. Total Stock Market Index',
-      'Over 2,500 holdings across all market caps',
-      'Automatic dividend reinvestment available',
-      'Low portfolio turnover reduces costs'
-    ],
-    riskLevel: 3,
-    website: 'https://www.schwab.com/mutual-funds/mutual-fund-portfolio/total-stock-market-index'
-  },
-
-  'FXNAX': {
-    symbol: 'FXNAX',
-    name: 'Fidelity U.S. Bond Index Fund',
-    type: 'Mutual Fund',
-    category: 'US Aggregate Bonds',
-    expenseRatio: 0.025,
-    description: 'Seeks to provide investment results that correspond to the total return of the Bloomberg U.S. Aggregate Bond Index.',
-    pros: [
-      'Very low expense ratio of 0.025%',
-      'Broad bond market exposure',
-      'No minimum investment requirement',
-      'Fidelity research and management'
-    ],
-    cons: [
-      'Interest rate risk affects bond prices',
-      'Credit risk from underlying bonds',
-      'Inflation can erode real returns'
-    ],
-    keyFeatures: [
-      'Tracks Bloomberg U.S. Aggregate Bond Index',
-      'Includes government, corporate, and mortgage-backed securities',
-      'Average duration of 6-7 years',
-      'Monthly dividend distributions'
-    ],
-    riskLevel: 2,
-    website: 'https://fundresearch.fidelity.com/mutual-funds/summary/316146356'
-  },
-
-  'SWISX': {
-    symbol: 'SWISX',
-    name: 'Schwab International Index Fund',
-    type: 'Mutual Fund',
-    category: 'International Developed Markets',
-    expenseRatio: 0.06,
-    description: 'Tracks the performance of the FTSE Developed ex US Index, providing exposure to international developed markets.',
-    pros: [
-      'Geographic diversification outside U.S.',
-      'Low expense ratio of 0.06%',
-      'Exposure to developed international markets',
-      'Currency diversification benefits'
-    ],
-    cons: [
-      'Currency exchange rate risk',
-      'Political and economic risks in foreign markets',
-      'May have different tax implications'
-    ],
-    keyFeatures: [
-      'Tracks FTSE Developed ex US Index',
-      'Exposure to Europe, Japan, and other developed markets',
-      'Over 900 holdings across 23 countries',
-      'Quarterly dividend distributions'
-    ],
-    riskLevel: 3,
-    website: 'https://www.schwab.com/mutual-funds/mutual-fund-portfolio/international-index'
-  },
-
-  'FTIHX': {
-    symbol: 'FTIHX',
-    name: 'Fidelity Total International Index Fund',
-    type: 'Mutual Fund',
-    category: 'International Developed Markets',
-    expenseRatio: 0.06,
-    description: 'Seeks to provide investment results that correspond to the total return of the FTSE Global All Cap ex US Index.',
-    pros: [
-      'Broad international diversification',
-      'Low expense ratio of 0.06%',
-      'Includes both developed and emerging markets',
-      'No minimum investment requirement'
-    ],
-    cons: [
-      'Currency exchange rate volatility',
-      'Emerging market risks included',
-      'Political and regulatory risks'
-    ],
-    keyFeatures: [
-      'Tracks FTSE Global All Cap ex US Index',
-      'Includes developed and emerging markets',
-      'Over 3,000 international holdings',
-      'Quarterly dividend distributions'
-    ],
-    riskLevel: 4,
-    website: 'https://fundresearch.fidelity.com/mutual-funds/summary/31635T708'
-  },
-
-  'FZROX': {
-    symbol: 'FZROX',
-    name: 'Fidelity ZERO Total Market Index Fund',
-    type: 'Mutual Fund',
-    category: 'US Total Market',
-    expenseRatio: 0.0,
-    description: 'Seeks to provide investment results that correspond to the total return of the Fidelity U.S. Total Investable Market Index.',
-    pros: [
-      'Zero expense ratio - completely free',
-      'Broad U.S. market diversification',
-      'No minimum investment requirement',
-      'Fidelity research and technology'
-    ],
-    cons: [
-      'Only available to Fidelity customers',
-      'No international exposure',
-      'Relatively new fund (launched 2018)'
-    ],
-    keyFeatures: [
-      'Tracks Fidelity U.S. Total Investable Market Index',
-      'Over 2,800 holdings across all market caps',
-      'Zero management fees',
-      'Quarterly dividend distributions'
-    ],
-    riskLevel: 3,
-    website: 'https://fundresearch.fidelity.com/mutual-funds/summary/31635V307'
-  }
 };
 
 export const getSecurityInfo = (symbol: string): SecurityInfo | null => {
