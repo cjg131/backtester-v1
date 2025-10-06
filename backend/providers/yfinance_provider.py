@@ -4,6 +4,7 @@ Yahoo Finance data provider using yfinance library.
 
 import yfinance as yf
 import pandas as pd
+import time
 from typing import List, Optional
 from providers.base import DataProvider
 from engine.models import Bar, Dividend, Split
@@ -34,12 +35,35 @@ class YFinanceProvider(DataProvider):
         freq: str = "daily"
     ) -> List[Bar]:
         """Download bars from Yahoo Finance"""
+        # Add retry logic for yfinance API issues
+        max_retries = 3
+        retry_delay = 2  # seconds
+        
+        for attempt in range(max_retries):
+            try:
+                # Add small delay between requests to avoid rate limiting
+                if attempt > 0:
+                    time.sleep(retry_delay * attempt)
+                
+                ticker = yf.Ticker(symbol)
+                df = ticker.history(start=start, end=end, auto_adjust=False)
+                
+                if df.empty:
+                    print(f"Empty dataframe for {symbol} on attempt {attempt + 1}")
+                    if attempt < max_retries - 1:
+                        continue
+                    return []
+                
+                # Successfully got data
+                break
+                
+            except Exception as e:
+                print(f"Attempt {attempt + 1}/{max_retries} failed for {symbol}: {e}")
+                if attempt == max_retries - 1:
+                    return []
+                continue
+        
         try:
-            ticker = yf.Ticker(symbol)
-            df = ticker.history(start=start, end=end, auto_adjust=False)
-            
-            if df.empty:
-                return []
             
             bars = []
             for date, row in df.iterrows():
