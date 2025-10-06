@@ -5,6 +5,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { StrategyConfig, BacktestResult, SavedStrategy } from '@/types';
+import { API_ENDPOINTS } from '@/config/api';
 
 interface StrategyStore {
   // Saved strategies
@@ -94,8 +95,8 @@ export const useStrategyStore = create<StrategyStore>()(
         console.log('Store: Starting backtest API call');
         
         try {
-          console.log('Store: Fetching /api/backtest/run');
-          const response = await fetch('/api/backtest/run', {
+          console.log('Store: Fetching', API_ENDPOINTS.backtest);
+          const response = await fetch(API_ENDPOINTS.backtest, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
