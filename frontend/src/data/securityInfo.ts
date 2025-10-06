@@ -12,6 +12,9 @@ export interface SecurityInfo {
   dividendYield?: number;
   inception?: string;
   aum?: string;
+  holdings?: string;
+  topHoldings?: Array<{ name: string; weight: number }>;
+  sectors?: Array<{ name: string; weight: number }>;
   pros: string[];
   cons: string[];
   keyFeatures: string[];
