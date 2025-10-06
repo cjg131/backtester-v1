@@ -16,10 +16,13 @@ from dotenv import load_dotenv
 
 from engine.models import StrategyConfig, BacktestResult
 from engine.runner import StrategyRunner
-from providers.yfinance_provider import YFinanceProvider
+from providers.twelvedata_provider import TwelveDataProvider
 
 # Load environment variables
 load_dotenv()
+
+# Get Twelve Data API key from environment
+TWELVEDATA_API_KEY = os.getenv('TWELVEDATA_API_KEY', '')
 
 app = FastAPI(
     title="Backtester v1 API",
@@ -36,9 +39,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Initialize data provider with enhanced yfinance
-yfinance_provider = YFinanceProvider()
-current_provider = yfinance_provider
+# Initialize data provider
+if not TWELVEDATA_API_KEY:
+    raise ValueError("TWELVEDATA_API_KEY environment variable is required")
+
+twelvedata_provider = TwelveDataProvider(api_key=TWELVEDATA_API_KEY)
+current_provider = twelvedata_provider
 
 
 def clean_json_data(obj):
@@ -84,7 +90,7 @@ async def health():
     return {
         "status": "healthy",
         "providers": {
-            "yfinance": "available"
+            "twelvedata": "available" if TWELVEDATA_API_KEY else "missing_api_key"
         }
     }
 
@@ -94,8 +100,8 @@ async def health():
 async def run_backtest(config: StrategyConfig):
     """Run a backtest with the given configuration"""
     try:
-        # Use yfinance provider to download data on-demand
-        runner = StrategyRunner(yfinance_provider)
+        # Use Twelve Data provider to download data on-demand
+        runner = StrategyRunner(twelvedata_provider)
         result = await runner.run(config)
         
         # Convert result to dict and handle NaN/inf values
