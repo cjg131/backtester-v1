@@ -17,6 +17,7 @@ import {
 import { useStrategyStore } from '@/stores/strategyStore';
 import { POPULAR_ETFS } from '@/data/popularSymbols';
 import type { StrategyConfig } from '@/types';
+import { API_BASE_URL } from '@/config/api';
 
 const getDefaultConfig = (): StrategyConfig => ({
   meta: {
@@ -131,7 +132,7 @@ export default function Builder() {
     // First check if backend is accessible
     try {
       console.log('Testing backend connectivity...');
-      const healthCheck = await fetch('/api/health', { method: 'GET' });
+      const healthCheck = await fetch(`${API_BASE_URL}/health`, { method: 'GET' });
       console.log('Health check response:', healthCheck.status);
       if (!healthCheck.ok) {
         throw new Error(`Backend not accessible: ${healthCheck.status}`);
