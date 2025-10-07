@@ -30,12 +30,17 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# CORS middleware - Allow all origins for now (can restrict later)
+# CORS middleware - Allow Vercel domains
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allow all origins
-    allow_credentials=False,  # Must be False when allow_origins is "*"
-    allow_methods=["*"],
+    allow_origins=[
+        "https://backtester-v1.vercel.app",
+        "https://*.vercel.app",
+        "http://localhost:3000",
+        "http://localhost:5173"
+    ],
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 
