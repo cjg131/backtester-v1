@@ -35,7 +35,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "https://backtester-v1.vercel.app",
-        "https://*.vercel.app",
+        "https://backtester-v1-567k7tgoh-cjs-projects-afe30242.vercel.app",
         "http://localhost:3000",
         "http://localhost:5173"
     ],
