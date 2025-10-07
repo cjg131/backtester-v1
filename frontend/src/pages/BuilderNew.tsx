@@ -147,7 +147,14 @@ export default function Builder() {
       setCurrentStrategy(config);
       console.log('Running backtest...');
       await runBacktest(config);
-      console.log('Backtest completed, navigating to results');
+      
+      // Check if we actually got a result
+      const result = useStrategyStore.getState().currentResult;
+      if (!result) {
+        throw new Error('Backtest completed but no result was returned');
+      }
+      
+      console.log('Backtest completed successfully, result:', result);
       navigate('/results');
     } catch (error) {
       console.error('Backtest error:', error);

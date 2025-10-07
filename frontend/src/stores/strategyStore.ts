@@ -115,7 +115,13 @@ export const useStrategyStore = create<StrategyStore>()(
           const result: BacktestResult = await response.json();
           console.log('Store: Backtest result received:', result);
           
+          // Validate result has required fields
+          if (!result || typeof result !== 'object') {
+            throw new Error('Invalid result format received from server');
+          }
+          
           set({ currentResult: result, isRunning: false });
+          console.log('Store: Result stored successfully');
           
           // Update last run time
           const strategyId = get().strategies.find(
