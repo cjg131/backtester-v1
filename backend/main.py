@@ -94,6 +94,11 @@ async def health():
         }
     }
 
+@app.get("/test")
+async def test_cors():
+    """Simple CORS test endpoint"""
+    return {"message": "CORS is working!", "timestamp": "2025-10-06T23:15:00Z"}
+
 
 @app.post("/backtest/run")
 @app.post("/api/backtest/run")
