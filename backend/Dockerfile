@@ -20,8 +20,8 @@ RUN pip install --no-cache-dir --upgrade pip setuptools wheel && \
 # Copy application code
 COPY . .
 
-# Expose port
+# Expose port (Render will set this dynamically)
 EXPOSE 8000
 
-# Start uvicorn
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Start uvicorn with dynamic PORT from environment
+CMD uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000}
