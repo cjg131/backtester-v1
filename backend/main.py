@@ -109,8 +109,8 @@ async def test_cors():
 async def run_backtest(config: StrategyConfig):
     """Run a backtest with the given configuration"""
     try:
-        # Use Twelve Data provider to download data on-demand
-        runner = StrategyRunner(twelvedata_provider)
+        # Use current data provider (TwelveData or YFinance)
+        runner = StrategyRunner(current_provider)
         result = await runner.run(config)
         
         # Convert result to dict and handle NaN/inf values
