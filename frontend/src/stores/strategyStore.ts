@@ -96,13 +96,21 @@ export const useStrategyStore = create<StrategyStore>()(
         
         try {
           console.log('Store: Fetching', API_ENDPOINTS.backtest);
+          
+          // Create abort controller for timeout
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 120000); // 2 minute timeout
+          
           const response = await fetch(API_ENDPOINTS.backtest, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
             },
             body: JSON.stringify(config),
+            signal: controller.signal,
           });
+          
+          clearTimeout(timeoutId);
           
           console.log('Store: Response status:', response.status, response.statusText);
           
@@ -140,6 +148,12 @@ export const useStrategyStore = create<StrategyStore>()(
         } catch (error) {
           console.error('Backtest error:', error);
           set({ isRunning: false });
+          
+          // Handle timeout specifically
+          if (error instanceof Error && error.name === 'AbortError') {
+            throw new Error('Backtest timed out after 2 minutes. Try a shorter date range or fewer symbols.');
+          }
+          
           throw error;
         }
       },
