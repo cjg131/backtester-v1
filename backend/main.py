@@ -121,9 +121,17 @@ async def test_cors():
 async def run_backtest(config: StrategyConfig):
     """Run a backtest with the given configuration"""
     try:
+        print(f"=== BACKTEST STARTED ===")
+        print(f"Symbols: {config.universe.symbols}")
+        print(f"Period: {config.period.start} to {config.period.end}")
+        print(f"Initial Cash: ${config.initial_cash:,.2f}")
+        
         # Use current data provider (TwelveData or YFinance)
         runner = StrategyRunner(current_provider)
+        print(f"Running backtest with {current_provider.__class__.__name__}...")
         result = await runner.run(config)
+        print(f"=== BACKTEST COMPLETED ===")
+        print(f"Final Value: ${result.final_value:,.2f}")
         
         # Convert result to dict and handle NaN/inf values
         result_dict = result.dict()
