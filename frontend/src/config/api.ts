@@ -6,5 +6,5 @@
 export const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
 export const API_ENDPOINTS = {
-  backtest: `${API_BASE_URL}/backtest/run`,
+  backtest: `${API_BASE_URL}/api/backtest/run`,
 };
