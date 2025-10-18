@@ -25,7 +25,7 @@ load_dotenv()
 # Get Twelve Data API key from environment
 # Railway sets this directly, .env is only for local dev
 # Try multiple ways to get the API key
-TWELVEDATA_API_KEY = os.getenv('TWELVEDATA_API_KEY') or os.environ.get('TWELVEDATA_API_KEY', '')
+TWELVEDATA_API_KEY = os.getenv('TWELVEDATA_API_KEY') or os.environ.get('TWELVEDATA_API_KEY', '') or '35bfb2983b7445e189ef9f60ea14c5e8'
 
 # Debug: Print all environment variables that contain 'TWELVE' or 'API'
 print("=== Environment Variable Debug ===")

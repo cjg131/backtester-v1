@@ -1,0 +1,42 @@
+{
+  "meta": {
+    "name": "Test Strategy",
+    "notes": "Simple test"
+  },
+  "universe": {
+    "type": "CUSTOM",
+    "symbols": ["SPY"]
+  },
+  "period": {
+    "start": "2024-01-01",
+    "end": "2024-03-31",
+    "calendar": "NYSE"
+  },
+  "initial_cash": 100000,
+  "account": {
+    "type": "Roth IRA",
+    "tax": {}
+  },
+  "deposits": null,
+  "dividends": {
+    "mode": "DRIP"
+  },
+  "rebalancing": {
+    "type": "cashflow_only"
+  },
+  "orders": {},
+  "lots": {
+    "method": "HIFO"
+  },
+  "frictions": {},
+  "signals": [],
+  "rules": {
+    "entry": [],
+    "exit": []
+  },
+  "position_sizing": {
+    "method": "EQUAL_WEIGHT"
+  },
+  "benchmark": ["SPY"],
+  "exports": {}
+}
