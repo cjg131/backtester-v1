@@ -40,7 +40,7 @@ print("===================================")
 app = FastAPI(
     title="Backtester v1 API",
     description="Production-ready backtesting engine with tax-aware portfolio management",
-    version="1.0.0"
+    version="1.0.1"
 )
 
 # CORS middleware - Allow all origins (bulletproof for development)
