@@ -19,11 +19,15 @@ from engine.runner import StrategyRunner
 from providers.twelvedata_provider import TwelveDataProvider
 from providers.yfinance_provider import YFinanceProvider
 
-# Load environment variables
+# Load environment variables from .env file (for local development)
 load_dotenv()
 
 # Get Twelve Data API key from environment
+# Railway sets this directly, .env is only for local dev
 TWELVEDATA_API_KEY = os.getenv('TWELVEDATA_API_KEY', '')
+print(f"Environment check - API key present: {bool(TWELVEDATA_API_KEY)}")
+if TWELVEDATA_API_KEY:
+    print(f"API key starts with: {TWELVEDATA_API_KEY[:8]}...")
 
 app = FastAPI(
     title="Backtester v1 API",
