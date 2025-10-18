@@ -131,7 +131,9 @@ async def run_backtest(config: StrategyConfig):
         print(f"Running backtest with {current_provider.__class__.__name__}...")
         result = await runner.run(config)
         print(f"=== BACKTEST COMPLETED ===")
-        print(f"Final Value: ${result.final_value:,.2f}")
+        if result.equity_curve:
+            final_value = result.equity_curve[-1].get('portfolio_value', 0)
+            print(f"Final Value: ${final_value:,.2f}")
         
         # Convert result to dict and handle NaN/inf values
         result_dict = result.dict()
