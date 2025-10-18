@@ -18,7 +18,7 @@ class TwelveDataProvider(DataProvider):
         self.api_key = api_key
         self.base_url = "https://api.twelvedata.com"
         self._cache = {}
-        self.rate_limit_delay = 0.1  # 100ms between requests (free tier: ~8 req/sec)
+        self.rate_limit_delay = 0.05  # 50ms between requests for faster fetching
         self.last_request_time = 0
     
     def _rate_limit(self):
