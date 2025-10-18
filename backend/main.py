@@ -24,10 +24,18 @@ load_dotenv()
 
 # Get Twelve Data API key from environment
 # Railway sets this directly, .env is only for local dev
-TWELVEDATA_API_KEY = os.getenv('TWELVEDATA_API_KEY', '')
-print(f"Environment check - API key present: {bool(TWELVEDATA_API_KEY)}")
+# Try multiple ways to get the API key
+TWELVEDATA_API_KEY = os.getenv('TWELVEDATA_API_KEY') or os.environ.get('TWELVEDATA_API_KEY', '')
+
+# Debug: Print all environment variables that contain 'TWELVE' or 'API'
+print("=== Environment Variable Debug ===")
+for key in os.environ:
+    if 'TWELVE' in key.upper() or 'API' in key.upper():
+        print(f"Found env var: {key} = {os.environ[key][:20]}..." if len(os.environ[key]) > 20 else f"Found env var: {key} = {os.environ[key]}")
+print(f"TWELVEDATA_API_KEY present: {bool(TWELVEDATA_API_KEY)}")
 if TWELVEDATA_API_KEY:
     print(f"API key starts with: {TWELVEDATA_API_KEY[:8]}...")
+print("===================================")
 
 app = FastAPI(
     title="Backtester v1 API",
