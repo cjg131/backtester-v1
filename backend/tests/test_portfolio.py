@@ -123,12 +123,12 @@ def test_realized_gains_tracking():
     """Test that realized gains are tracked correctly"""
     portfolio = Portfolio(100000, AccountType.TAXABLE)
     
-    # Buy and sell for a gain
+    # Buy and sell for a gain (must be > 365 days for long-term)
     portfolio.buy("SPY", 10, 400, date(2024, 1, 1))
-    portfolio.sell("SPY", 10, 500, date(2024, 12, 1))  # Long-term gain
+    portfolio.sell("SPY", 10, 500, date(2025, 1, 2))  # Long-term gain (366 days)
     
     assert portfolio.realized_lt_gains > 0
-    assert portfolio.annual_realized_lt[2024] > 0
+    assert portfolio.annual_realized_lt[2025] > 0
 
 
 if __name__ == "__main__":

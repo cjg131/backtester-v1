@@ -17,6 +17,7 @@ from dotenv import load_dotenv
 from engine.models import StrategyConfig, BacktestResult
 from engine.runner import StrategyRunner
 from providers.twelvedata_provider import TwelveDataProvider
+from providers.yfinance_provider import YFinanceProvider
 
 # Load environment variables
 load_dotenv()
@@ -39,12 +40,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Initialize data provider
-if not TWELVEDATA_API_KEY:
-    raise ValueError("TWELVEDATA_API_KEY environment variable is required")
-
-twelvedata_provider = TwelveDataProvider(api_key=TWELVEDATA_API_KEY)
-current_provider = twelvedata_provider
+# Initialize data provider - prefer TwelveData if API key available, fallback to YFinance
+if TWELVEDATA_API_KEY:
+    print(f"Initializing TwelveData provider with API key: {TWELVEDATA_API_KEY[:8]}...")
+    twelvedata_provider = TwelveDataProvider(api_key=TWELVEDATA_API_KEY)
+    current_provider = twelvedata_provider
+else:
+    print("No TwelveData API key found, using YFinance provider (free)...")
+    yfinance_provider = YFinanceProvider()
+    current_provider = yfinance_provider
 
 
 def clean_json_data(obj):
