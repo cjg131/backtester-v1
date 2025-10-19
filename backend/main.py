@@ -115,6 +115,11 @@ async def test_cors():
     """Simple CORS test endpoint"""
     return {"message": "CORS is working!", "timestamp": "2025-10-06T23:15:00Z"}
 
+@app.post("/api/test")
+async def test_post():
+    """Test POST endpoint"""
+    return {"message": "POST is working!", "timestamp": "2025-10-19T09:50:00Z"}
+
 
 @app.post("/backtest/run")
 @app.post("/api/backtest/run")

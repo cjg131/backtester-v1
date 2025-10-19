@@ -3,8 +3,9 @@
  */
 
 // Use environment variable in production, fallback to relative URL for dev
-export const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
+const BASE_URL = import.meta.env.VITE_API_URL || '';
 
 export const API_ENDPOINTS = {
-  backtest: `${API_BASE_URL}/api/backtest/run`,
+  backtest: BASE_URL ? `${BASE_URL}/api/backtest/run` : '/api/backtest/run',
+  test: BASE_URL ? `${BASE_URL}/api/test` : '/api/test',
 };
