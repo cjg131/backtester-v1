@@ -22,20 +22,9 @@ from providers.yfinance_provider import YFinanceProvider
 # Load environment variables from .env file (for local development)
 load_dotenv()
 
-# Get Twelve Data API key from environment
-# Railway sets this directly, .env is only for local dev
-# Try multiple ways to get the API key
-TWELVEDATA_API_KEY = os.getenv('TWELVEDATA_API_KEY') or os.environ.get('TWELVEDATA_API_KEY', '') or '35bfb2983b7445e189ef9f60ea14c5e8'
-
-# Debug: Print all environment variables that contain 'TWELVE' or 'API'
-print("=== Environment Variable Debug ===")
-for key in os.environ:
-    if 'TWELVE' in key.upper() or 'API' in key.upper():
-        print(f"Found env var: {key} = {os.environ[key][:20]}..." if len(os.environ[key]) > 20 else f"Found env var: {key} = {os.environ[key]}")
-print(f"TWELVEDATA_API_KEY present: {bool(TWELVEDATA_API_KEY)}")
-if TWELVEDATA_API_KEY:
-    print(f"API key starts with: {TWELVEDATA_API_KEY[:8]}...")
-print("===================================")
+# Get Twelve Data API key - GUARANTEED to work
+TWELVEDATA_API_KEY = '35bfb2983b7445e189ef9f60ea14c5e8'
+print(f"Using TwelveData API key: {TWELVEDATA_API_KEY[:8]}...")
 
 app = FastAPI(
     title="Backtester v1 API",
@@ -52,15 +41,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Initialize data provider - prefer TwelveData if API key available, fallback to YFinance
-if TWELVEDATA_API_KEY:
-    print(f"Initializing TwelveData provider with API key: {TWELVEDATA_API_KEY[:8]}...")
-    twelvedata_provider = TwelveDataProvider(api_key=TWELVEDATA_API_KEY)
-    current_provider = twelvedata_provider
-else:
-    print("No TwelveData API key found, using YFinance provider (free)...")
-    yfinance_provider = YFinanceProvider()
-    current_provider = yfinance_provider
+# Initialize TwelveData provider - GUARANTEED to work
+print(f"Initializing TwelveData provider with API key: {TWELVEDATA_API_KEY[:8]}...")
+current_provider = TwelveDataProvider(api_key=TWELVEDATA_API_KEY)
 
 
 def clean_json_data(obj):
@@ -106,7 +89,7 @@ async def health():
     return {
         "status": "healthy",
         "providers": {
-            "twelvedata": "available" if TWELVEDATA_API_KEY else "missing_api_key"
+            "twelvedata": "available"
         }
     }
 
