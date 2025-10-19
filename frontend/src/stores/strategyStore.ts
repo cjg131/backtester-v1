@@ -99,7 +99,7 @@ export const useStrategyStore = create<StrategyStore>()(
           
           // Create abort controller for timeout
           const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 120000); // 2 minute timeout
+          const timeoutId = setTimeout(() => controller.abort(), 300000); // 5 minute timeout
           
           const response = await fetch(API_ENDPOINTS.backtest, {
             method: 'POST',
@@ -151,7 +151,7 @@ export const useStrategyStore = create<StrategyStore>()(
           
           // Handle timeout specifically
           if (error instanceof Error && error.name === 'AbortError') {
-            throw new Error('Backtest timed out after 2 minutes. Try a shorter date range or fewer symbols.');
+            throw new Error('Backtest timed out after 5 minutes. Try a shorter date range or fewer symbols.');
           }
           
           throw error;
