@@ -61,8 +61,14 @@ class TwelveDataProvider(DataProvider):
         end: str,
         freq: str = "daily"
     ) -> List[Bar]:
-        """Download bars from Twelve Data"""
+        """Download bars from Twelve Data with caching"""
+        cache_key = f"{symbol}_{start}_{end}_{freq}"
+        if cache_key in self._cache:
+            print(f"Using cached data for {symbol}")
+            return self._cache[cache_key]
+            
         try:
+            print(f"Fetching {symbol} from {start} to {end}")
             # Twelve Data time series endpoint
             params = {
                 'symbol': symbol,
@@ -92,6 +98,7 @@ class TwelveDataProvider(DataProvider):
                 bars.append(bar)
             
             print(f"Loaded {len(bars)} bars for {symbol}")
+            self._cache[cache_key] = bars  # Cache the results
             return bars
         
         except Exception as e:
