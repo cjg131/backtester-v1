@@ -89,30 +89,21 @@ export const useStrategyStore = create<StrategyStore>()(
         set({ currentStrategy: config });
       },
       
-      // Run backtest
+      // Run backtest with streaming
       runBacktest: async (config) => {
         set({ isRunning: true, currentResult: null });
-        console.log('Store: Starting backtest API call');
+        console.log('Store: Starting streaming backtest');
         
         try {
-          console.log('Store: Fetching', API_ENDPOINTS.backtest);
+          console.log('Store: Fetching', API_ENDPOINTS.backtestStream);
           
-          // Create abort controller for timeout
-          const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 300000); // 5 minute timeout
-          
-          const response = await fetch(API_ENDPOINTS.backtest, {
+          const response = await fetch(API_ENDPOINTS.backtestStream, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
             },
             body: JSON.stringify(config),
-            signal: controller.signal,
           });
-          
-          clearTimeout(timeoutId);
-          
-          console.log('Store: Response status:', response.status, response.statusText);
           
           if (!response.ok) {
             const errorText = await response.text();
@@ -120,40 +111,60 @@ export const useStrategyStore = create<StrategyStore>()(
             throw new Error(`Backtest failed: ${response.status} ${response.statusText} - ${errorText}`);
           }
           
-          const result: BacktestResult = await response.json();
-          console.log('Store: Backtest result received:', result);
-          
-          // Validate result has required fields
-          if (!result || typeof result !== 'object') {
-            throw new Error('Invalid result format received from server');
+          if (!response.body) {
+            throw new Error('No response body for streaming');
           }
           
-          set({ currentResult: result, isRunning: false });
-          console.log('Store: Result stored successfully');
+          const reader = response.body.getReader();
+          const decoder = new TextDecoder();
           
-          // Update last run time
-          const strategyId = get().strategies.find(
-            (s) => s.config.meta.name === config.meta.name
-          )?.id;
-          
-          if (strategyId) {
-            set((state) => ({
-              strategies: state.strategies.map((s) =>
-                s.id === strategyId
-                  ? { ...s, last_run: new Date().toISOString() }
-                  : s
-              ),
-            }));
+          while (true) {
+            const { done, value } = await reader.read();
+            
+            if (done) break;
+            
+            const chunk = decoder.decode(value);
+            const lines = chunk.split('\n');
+            
+            for (const line of lines) {
+              if (line.startsWith('data: ')) {
+                try {
+                  const data = JSON.parse(line.slice(6));
+                  console.log('Stream data:', data);
+                  
+                  if (data.status === 'completed' && data.result) {
+                    console.log('Store: Backtest completed via stream');
+                    set({ currentResult: data.result, isRunning: false });
+                    
+                    // Update last run time
+                    const strategyId = get().strategies.find(
+                      (s) => s.config.meta.name === config.meta.name
+                    )?.id;
+                    
+                    if (strategyId) {
+                      set((state) => ({
+                        strategies: state.strategies.map((s) =>
+                          s.id === strategyId
+                            ? { ...s, last_run: new Date().toISOString() }
+                            : s
+                        ),
+                      }));
+                    }
+                    return;
+                  } else if (data.status === 'error') {
+                    throw new Error(data.message || 'Backtest failed');
+                  }
+                  // For progress updates, we just log them
+                } catch (parseError) {
+                  console.warn('Failed to parse stream data:', line);
+                }
+              }
+            }
           }
+          
         } catch (error) {
           console.error('Backtest error:', error);
           set({ isRunning: false });
-          
-          // Handle timeout specifically
-          if (error instanceof Error && error.name === 'AbortError') {
-            throw new Error('Backtest timed out after 5 minutes. Try a shorter date range or fewer symbols.');
-          }
-          
           throw error;
         }
       },

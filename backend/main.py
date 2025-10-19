@@ -5,14 +5,14 @@ Provides endpoints for running backtests and managing strategies.
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 from typing import Dict, Any
 import json
 import math
 from pydantic import BaseModel
-from typing import Dict, Any
 import os
 from dotenv import load_dotenv
+import asyncio
 
 from engine.models import StrategyConfig, BacktestResult
 from engine.runner import StrategyRunner
@@ -121,10 +121,59 @@ async def test_post():
     return {"message": "POST is working!", "timestamp": "2025-10-19T09:50:00Z"}
 
 
+@app.post("/api/backtest/stream")
+async def run_backtest_stream(config: StrategyConfig):
+    """Run a backtest with streaming progress updates"""
+    async def generate_progress():
+        try:
+            print(f"=== STREAMING BACKTEST STARTED ===")
+            print(f"Symbols: {config.universe.symbols}")
+            print(f"Period: {config.period.start} to {config.period.end}")
+            print(f"Initial Cash: ${config.initial_cash:,.2f}")
+            
+            # Send initial progress
+            yield f"data: {json.dumps({'status': 'starting', 'message': 'Initializing backtest...'})}\n\n"
+            await asyncio.sleep(0.1)
+            
+            # Use current data provider
+            runner = StrategyRunner(current_provider)
+            yield f"data: {json.dumps({'status': 'progress', 'message': f'Loading data with {current_provider.__class__.__name__}...'})}\n\n"
+            await asyncio.sleep(0.1)
+            
+            # Run the backtest
+            result = await runner.run(config)
+            
+            print(f"=== STREAMING BACKTEST COMPLETED ===")
+            if result.equity_curve:
+                final_value = result.equity_curve[-1].get('portfolio_value', 0)
+                print(f"Final Value: ${final_value:,.2f}")
+            
+            # Send completion with results
+            result_dict = result.dict()
+            result_dict = clean_json_data(result_dict)
+            
+            yield f"data: {json.dumps({'status': 'completed', 'result': result_dict})}\n\n"
+            
+        except Exception as e:
+            import traceback
+            print(f"STREAMING BACKTEST ERROR: {e}")
+            traceback.print_exc()
+            yield f"data: {json.dumps({'status': 'error', 'message': str(e)})}\n\n"
+    
+    return StreamingResponse(
+        generate_progress(),
+        media_type="text/plain",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "Access-Control-Allow-Origin": "*",
+        }
+    )
+
 @app.post("/backtest/run")
 @app.post("/api/backtest/run")
 async def run_backtest(config: StrategyConfig):
-    """Run a backtest with the given configuration"""
+    """Run a backtest with the given configuration (legacy endpoint)"""
     try:
         print(f"=== BACKTEST STARTED ===")
         print(f"Symbols: {config.universe.symbols}")
