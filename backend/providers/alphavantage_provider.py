@@ -70,9 +70,9 @@ class AlphaVantageProvider(DataProvider):
         try:
             print(f"Fetching {symbol} from Alpha Vantage ({start} to {end})")
             
-            # Alpha Vantage daily adjusted endpoint
+            # Alpha Vantage daily endpoint (free tier)
             params = {
-                'function': 'TIME_SERIES_DAILY_ADJUSTED',
+                'function': 'TIME_SERIES_DAILY',
                 'symbol': symbol,
                 'outputsize': 'full'  # Get full historical data (20+ years)
             }
@@ -95,8 +95,8 @@ class AlphaVantageProvider(DataProvider):
                         high=float(daily_data['2. high']),
                         low=float(daily_data['3. low']),
                         close=float(daily_data['4. close']),
-                        adj_close=float(daily_data['5. adjusted close']),
-                        volume=float(daily_data['6. volume'])
+                        adj_close=float(daily_data['4. close']),  # Use close as adj_close for free tier
+                        volume=float(daily_data['5. volume'])
                     )
                     bars.append(bar)
             

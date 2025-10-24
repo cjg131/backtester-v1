@@ -17,7 +17,7 @@ import asyncio
 from engine.models import StrategyConfig, BacktestResult
 from engine.runner import StrategyRunner
 from engine.streaming_runner import StreamingStrategyRunner
-from providers.alphavantage_provider import AlphaVantageProvider
+from providers.reliable_provider import ReliableProvider
 
 # Load environment variables from .env file (for local development)
 load_dotenv()
@@ -41,10 +41,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Initialize Alpha Vantage as the single data provider
-print("Initializing Alpha Vantage as the sole data provider...")
-current_provider = AlphaVantageProvider(api_key=ALPHAVANTAGE_API_KEY)
-print("✅ Single provider setup - no fallbacks needed, maximum reliability")
+# Initialize reliable provider (Alpha Vantage + YFinance fallback)
+print("Initializing reliable provider (Alpha Vantage + YFinance fallback)...")
+current_provider = ReliableProvider(alphavantage_key=ALPHAVANTAGE_API_KEY)
+print("✅ Reliable provider setup - Alpha Vantage primary, YFinance fallback")
 
 
 def clean_json_data(obj):
@@ -89,8 +89,8 @@ async def health():
     """Detailed health check"""
     return {
         "status": "healthy",
-        "provider": "alphavantage_only",
-        "data_source": "alpha_vantage_api",
+        "provider": "reliable_hybrid",
+        "data_source": "alphavantage_primary_yfinance_fallback",
         "features": {
             "historical_data": "25+ years",
             "daily_calls": "500",
@@ -98,7 +98,7 @@ async def health():
             "symbols": "unlimited",
             "reliability": "maximum"
         },
-        "message": "Single provider setup - Alpha Vantage only"
+        "message": "Reliable hybrid provider - Alpha Vantage primary, YFinance fallback"
     }
 
 @app.get("/test")
@@ -135,7 +135,7 @@ async def run_backtest_stream(config: StrategyConfig):
             
             # Create streaming runner with progress callback
             streaming_runner = StreamingStrategyRunner(current_provider, progress_callback)
-            yield f"data: {json.dumps({'status': 'progress', 'message': 'Using Alpha Vantage for 25+ years of reliable data...'})}\n\n"
+            yield f"data: {json.dumps({'status': 'progress', 'message': 'Using reliable provider (Alpha Vantage + YFinance fallback)...'})}\n\n"
             await asyncio.sleep(0.1)
             
             # Start the backtest in a task
