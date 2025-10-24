@@ -26,9 +26,9 @@ load_dotenv()
 
 # API Keys
 TWELVEDATA_API_KEY = '35bfb2983b7445e189ef9f60ea14c5e8'
-ALPHAVANTAGE_API_KEY = 'demo'  # Replace with real key for production
+ALPHAVANTAGE_API_KEY = 'LEIY6CDZGJCXCPT2'  # Your Alpha Vantage API key
 print(f"Using TwelveData API key: {TWELVEDATA_API_KEY[:8]}...")
-print(f"Using Alpha Vantage API key: {ALPHAVANTAGE_API_KEY}")
+print(f"Using Alpha Vantage API key: {ALPHAVANTAGE_API_KEY[:8]}...")
 
 app = FastAPI(
     title="Backtester v1 API",
