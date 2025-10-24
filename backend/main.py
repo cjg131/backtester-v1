@@ -16,8 +16,10 @@ import asyncio
 
 from engine.models import StrategyConfig, BacktestResult
 from engine.runner import StrategyRunner
+from providers.csv_provider import CSVProvider
 from providers.twelvedata_provider import TwelveDataProvider
 from providers.yfinance_provider import YFinanceProvider
+from providers.smart_provider import SmartProvider
 
 # Load environment variables from .env file (for local development)
 load_dotenv()
@@ -41,9 +43,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Initialize TwelveData provider - GUARANTEED to work
-print(f"Initializing TwelveData provider with API key: {TWELVEDATA_API_KEY[:8]}...")
-current_provider = TwelveDataProvider(api_key=TWELVEDATA_API_KEY)
+# Initialize all providers
+print("Initializing data providers...")
+csv_provider = CSVProvider(data_dir="data")
+twelvedata_provider = TwelveDataProvider(api_key=TWELVEDATA_API_KEY)
+yfinance_provider = YFinanceProvider()
+
+# Initialize smart provider (CSV first, then API fallbacks)
+print("Initializing smart provider with CSV priority...")
+current_provider = SmartProvider(csv_provider, twelvedata_provider, yfinance_provider)
 
 
 def clean_json_data(obj):
@@ -86,11 +94,19 @@ async def health_check():
 @app.get("/api/health")
 async def health():
     """Detailed health check"""
+    # Check available symbols in CSV provider
+    available_symbols = await current_provider.get_symbols("", None)
+    
     return {
         "status": "healthy",
         "providers": {
-            "twelvedata": "available"
-        }
+            "smart": "active",
+            "csv": "primary",
+            "twelvedata": "backup", 
+            "yfinance": "fallback"
+        },
+        "available_symbols": available_symbols,
+        "data_source": "local_csv"
     }
 
 @app.get("/test")
