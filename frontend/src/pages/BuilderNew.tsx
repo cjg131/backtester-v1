@@ -15,7 +15,7 @@ import {
   CheckCircle
 } from 'lucide-react';
 import { useStrategyStore } from '@/stores/strategyStore';
-import { POPULAR_ETFS } from '@/data/popularSymbols';
+import { POPULAR_ETFS, POPULAR_STOCKS, SYMBOL_PRESETS, UNIQUE_ALL_SYMBOLS } from '@/data/popularSymbols';
 import type { StrategyConfig } from '@/types';
 import { API_BASE_URL } from '@/config/api';
 
@@ -476,6 +476,29 @@ export default function Builder() {
                   </p>
                 </div>
 
+                {/* Symbol Presets */}
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Quick Presets</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
+                    {Object.entries(SYMBOL_PRESETS).map(([presetName, symbols]) => (
+                      <button
+                        key={presetName}
+                        onClick={() => {
+                          updateConfig('universe.symbols', symbols);
+                        }}
+                        className="p-3 text-left border-2 border-gray-200 dark:border-gray-600 rounded-xl hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all"
+                      >
+                        <div className="font-semibold text-gray-900 dark:text-white text-sm">
+                          {presetName}
+                        </div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                          {symbols.length} symbols
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
                 {/* Popular ETFs */}
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Popular ETFs</h3>
@@ -499,6 +522,40 @@ export default function Builder() {
                                 config.universe.symbols.includes(symbol)
                                   ? 'bg-blue-500 text-white border-blue-500'
                                   : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-blue-50 dark:hover:bg-gray-600'
+                              }`}
+                            >
+                              {symbol}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Popular Stocks */}
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Popular Stocks</h3>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    {Object.entries(POPULAR_STOCKS).map(([category, symbols]) => (
+                      <div key={category} className="space-y-2">
+                        <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 capitalize">
+                          {category.replace('_', ' ')}
+                        </h4>
+                        <div className="flex flex-wrap gap-1">
+                          {symbols.map((symbol) => (
+                            <button
+                              key={symbol}
+                              onClick={() => {
+                                const currentSymbols = config.universe.symbols;
+                                if (!currentSymbols.includes(symbol)) {
+                                  updateConfig('universe.symbols', [...currentSymbols, symbol]);
+                                }
+                              }}
+                              className={`px-3 py-1 text-xs rounded-full border transition-all ${
+                                config.universe.symbols.includes(symbol)
+                                  ? 'bg-green-500 text-white border-green-500'
+                                  : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-green-50 dark:hover:bg-gray-600'
                               }`}
                             >
                               {symbol}
