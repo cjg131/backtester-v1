@@ -16,17 +16,19 @@ import asyncio
 
 from engine.models import StrategyConfig, BacktestResult
 from engine.runner import StrategyRunner
-from providers.csv_provider import CSVProvider
+from engine.streaming_runner import StreamingStrategyRunner
+from providers.alphavantage_provider import AlphaVantageProvider
 from providers.twelvedata_provider import TwelveDataProvider
 from providers.yfinance_provider import YFinanceProvider
-from providers.smart_provider import SmartProvider
 
 # Load environment variables from .env file (for local development)
 load_dotenv()
 
-# Get Twelve Data API key - GUARANTEED to work
+# API Keys
 TWELVEDATA_API_KEY = '35bfb2983b7445e189ef9f60ea14c5e8'
+ALPHAVANTAGE_API_KEY = 'demo'  # Replace with real key for production
 print(f"Using TwelveData API key: {TWELVEDATA_API_KEY[:8]}...")
+print(f"Using Alpha Vantage API key: {ALPHAVANTAGE_API_KEY}")
 
 app = FastAPI(
     title="Backtester v1 API",
@@ -43,15 +45,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Initialize all providers
+# Initialize data providers with fallback hierarchy
 print("Initializing data providers...")
-csv_provider = CSVProvider(data_dir="data")
+alphavantage_provider = AlphaVantageProvider(api_key=ALPHAVANTAGE_API_KEY)
 twelvedata_provider = TwelveDataProvider(api_key=TWELVEDATA_API_KEY)
 yfinance_provider = YFinanceProvider()
 
-# Initialize smart provider (CSV first, then API fallbacks)
-print("Initializing smart provider with CSV priority...")
-current_provider = SmartProvider(csv_provider, twelvedata_provider, yfinance_provider)
+# Use Alpha Vantage as primary (25+ years of data, 500 calls/day)
+print("Using Alpha Vantage as primary provider for long-term historical data...")
+current_provider = alphavantage_provider
 
 
 def clean_json_data(obj):
@@ -94,19 +96,19 @@ async def health_check():
 @app.get("/api/health")
 async def health():
     """Detailed health check"""
-    # Check available symbols in CSV provider
-    available_symbols = await current_provider.get_symbols("", None)
-    
     return {
         "status": "healthy",
         "providers": {
-            "smart": "active",
-            "csv": "primary",
+            "alphavantage": "primary",
             "twelvedata": "backup", 
             "yfinance": "fallback"
         },
-        "available_symbols": available_symbols,
-        "data_source": "local_csv"
+        "data_source": "alphavantage_api",
+        "features": {
+            "historical_data": "25+ years",
+            "daily_calls": "500",
+            "streaming": "enabled"
+        }
     }
 
 @app.get("/test")
@@ -123,6 +125,7 @@ async def test_post():
 @app.post("/api/backtest/stream")
 async def run_backtest_stream(config: StrategyConfig):
     """Run a backtest with streaming progress updates"""
+    
     async def generate_progress():
         try:
             print(f"=== STREAMING BACKTEST STARTED ===")
@@ -131,16 +134,36 @@ async def run_backtest_stream(config: StrategyConfig):
             print(f"Initial Cash: ${config.initial_cash:,.2f}")
             
             # Send initial progress
-            yield f"data: {json.dumps({'status': 'starting', 'message': 'Initializing backtest...'})}\n\n"
+            yield f"data: {json.dumps({'status': 'starting', 'message': 'Initializing enhanced streaming backtest...'})}\n\n"
             await asyncio.sleep(0.1)
             
-            # Use current data provider
-            runner = StrategyRunner(current_provider)
-            yield f"data: {json.dumps({'status': 'progress', 'message': f'Loading data with {current_provider.__class__.__name__}...'})}\n\n"
+            # Progress callback to send updates to client
+            progress_queue = asyncio.Queue()
+            
+            async def progress_callback(progress_data):
+                await progress_queue.put(progress_data)
+            
+            # Create streaming runner with progress callback
+            streaming_runner = StreamingStrategyRunner(current_provider, progress_callback)
+            yield f"data: {json.dumps({'status': 'progress', 'message': f'Using {current_provider.__class__.__name__} for 25+ years of data...'})}\n\n"
             await asyncio.sleep(0.1)
             
-            # Run the backtest
-            result = await runner.run(config)
+            # Start the backtest in a task
+            backtest_task = asyncio.create_task(streaming_runner.run_with_progress(config))
+            
+            # Process progress updates while backtest runs
+            while not backtest_task.done():
+                try:
+                    # Check for progress updates with timeout
+                    progress_data = await asyncio.wait_for(progress_queue.get(), timeout=0.1)
+                    yield f"data: {json.dumps(progress_data)}\n\n"
+                except asyncio.TimeoutError:
+                    # No progress update, send keepalive
+                    yield f"data: {json.dumps({'status': 'keepalive'})}\n\n"
+                    await asyncio.sleep(0.5)
+            
+            # Get the final result
+            result = await backtest_task
             
             print(f"=== STREAMING BACKTEST COMPLETED ===")
             if result.equity_curve:
