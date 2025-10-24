@@ -18,17 +18,13 @@ from engine.models import StrategyConfig, BacktestResult
 from engine.runner import StrategyRunner
 from engine.streaming_runner import StreamingStrategyRunner
 from providers.alphavantage_provider import AlphaVantageProvider
-from providers.twelvedata_provider import TwelveDataProvider
-from providers.yfinance_provider import YFinanceProvider
 
 # Load environment variables from .env file (for local development)
 load_dotenv()
 
-# API Keys
-TWELVEDATA_API_KEY = '35bfb2983b7445e189ef9f60ea14c5e8'
-ALPHAVANTAGE_API_KEY = 'LEIY6CDZGJCXCPT2'  # Your Alpha Vantage API key
-print(f"Using TwelveData API key: {TWELVEDATA_API_KEY[:8]}...")
-print(f"Using Alpha Vantage API key: {ALPHAVANTAGE_API_KEY[:8]}...")
+# Alpha Vantage API Key (single data source for simplicity)
+ALPHAVANTAGE_API_KEY = 'LEIY6CDZGJCXCPT2'
+print(f"Using Alpha Vantage API key: {ALPHAVANTAGE_API_KEY[:8]}... (25+ years of data, 500 calls/day)")
 
 app = FastAPI(
     title="Backtester v1 API",
@@ -45,15 +41,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Initialize data providers with fallback hierarchy
-print("Initializing data providers...")
-alphavantage_provider = AlphaVantageProvider(api_key=ALPHAVANTAGE_API_KEY)
-twelvedata_provider = TwelveDataProvider(api_key=TWELVEDATA_API_KEY)
-yfinance_provider = YFinanceProvider()
-
-# Use Alpha Vantage as primary (25+ years of data, 500 calls/day)
-print("Using Alpha Vantage as primary provider for long-term historical data...")
-current_provider = alphavantage_provider
+# Initialize Alpha Vantage as the single data provider
+print("Initializing Alpha Vantage as the sole data provider...")
+current_provider = AlphaVantageProvider(api_key=ALPHAVANTAGE_API_KEY)
+print("✅ Single provider setup - no fallbacks needed, maximum reliability")
 
 
 def clean_json_data(obj):
@@ -98,17 +89,16 @@ async def health():
     """Detailed health check"""
     return {
         "status": "healthy",
-        "providers": {
-            "alphavantage": "primary",
-            "twelvedata": "backup", 
-            "yfinance": "fallback"
-        },
-        "data_source": "alphavantage_api",
+        "provider": "alphavantage_only",
+        "data_source": "alpha_vantage_api",
         "features": {
             "historical_data": "25+ years",
             "daily_calls": "500",
-            "streaming": "enabled"
-        }
+            "streaming": "enabled",
+            "symbols": "unlimited",
+            "reliability": "maximum"
+        },
+        "message": "Single provider setup - Alpha Vantage only"
     }
 
 @app.get("/test")
@@ -145,7 +135,7 @@ async def run_backtest_stream(config: StrategyConfig):
             
             # Create streaming runner with progress callback
             streaming_runner = StreamingStrategyRunner(current_provider, progress_callback)
-            yield f"data: {json.dumps({'status': 'progress', 'message': f'Using {current_provider.__class__.__name__} for 25+ years of data...'})}\n\n"
+            yield f"data: {json.dumps({'status': 'progress', 'message': 'Using Alpha Vantage for 25+ years of reliable data...'})}\n\n"
             await asyncio.sleep(0.1)
             
             # Start the backtest in a task
