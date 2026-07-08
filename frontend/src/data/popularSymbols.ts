@@ -25,6 +25,12 @@ export const POPULAR_ETFS = {
   ],
   'Thematic/Specialty': [
     'ARKK', 'ARKQ', 'ARKG', 'ARKW', 'ICLN', 'PBW', 'QCLN', 'TAN', 'FAN', 'LIT', 'ROBO', 'BOTZ', 'FINX', 'HACK'
+  ],
+  'Leveraged/Inverse': [
+    'TQQQ', 'SQQQ', 'SPXL', 'SPXS', 'TNA', 'TZA', 'UPRO', 'SPXU', 'UDOW', 'SDOW', 'FAS', 'FAZ', 'TECL', 'TECS'
+  ],
+  'Dividend Focus': [
+    'SCHD', 'VYM', 'NOBL', 'DVY', 'VIG', 'DGRO', 'HDV', 'SPHD', 'SPYD', 'FDVV', 'DGRW', 'PEY'
   ]
 };
 
